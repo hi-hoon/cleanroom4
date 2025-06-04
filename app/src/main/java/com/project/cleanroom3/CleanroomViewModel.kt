@@ -90,20 +90,20 @@ class CleanroomViewModel @Inject constructor() : ViewModel() {
                         _sirenOn.value = false
                     }
 
-                    msg.startsWith("TEMP=") -> {
-                        val value = msg.removePrefix("TEMP=").trim()
+                    msg.startsWith("[DATA]TEMP=") -> {
+                        val value = msg.removePrefix("[DATA]TEMP=").trim()
                         _temperature.value = value
                     }
-                    msg.startsWith("HUMID=") -> {
-                        val value = msg.removePrefix("HUMID=").trim()
+                    msg.startsWith("[DATA]HUMID=") -> {
+                        val value = msg.removePrefix("[DATA]HUMID=").trim()
                         _humidity.value = value
                     }
-                    msg.startsWith("DUST=") -> {
-                        val value = msg.removePrefix("DUST=").trim()
+                    msg.startsWith("[DATA]DUST=") -> {
+                        val value = msg.removePrefix("[DATA]DUST=").trim()
                         _dust.value = value
                     }
-                    msg.startsWith("PH=") -> {
-                        val value = msg.removePrefix("PH=").trim()
+                    msg.startsWith("[DATA]PH=") -> {
+                        val value = msg.removePrefix("[DATA]PH=").trim()
                         _ph.value = value
                     }
                 }
