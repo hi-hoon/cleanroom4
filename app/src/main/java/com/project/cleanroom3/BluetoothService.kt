@@ -15,6 +15,8 @@ import android.util.Log
 import java.io.IOException
 import java.lang.SecurityException
 import kotlinx.coroutines.delay
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class BluetoothService {
 
@@ -22,6 +24,7 @@ class BluetoothService {
     private var socket: BluetoothSocket? = null
     private var inputStream: InputStream? = null
     private var outputStream: OutputStream? = null
+    private var reader: BufferedReader? = null
 
     private val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
@@ -56,7 +59,10 @@ class BluetoothService {
             inputStream = socket?.inputStream
             outputStream = socket?.outputStream
 
+            reader = BufferedReader(InputStreamReader(inputStream)) // ✨ 추가
+
             Log.d("Bluetooth", "블루투스 연결 성공")
+
             return@withContext true
         } catch (e: SecurityException) {
             Log.e("Bluetooth", "Permission denied", e)
@@ -68,17 +74,13 @@ class BluetoothService {
     }
 
     suspend fun readLine(): String? = withContext(Dispatchers.IO) {
-        val buffer = ByteArray(1024)
-        val input = inputStream ?: return@withContext null
-
-        // ✅ 데이터가 들어올 때까지 기다리지 않고 available 체크
-        if (input.available() > 0) {
-            val bytes = input.read(buffer)
-            val message = buffer.decodeToString(0, bytes).trim()
-            Log.d("Bluetooth", "수신 데이터: $message")
-            return@withContext message
-        } else {
-            return@withContext null  // 아무 데이터도 안 들어오면 null 리턴
+        return@withContext try {
+            val line = reader?.readLine()
+            Log.d("Bluetooth", "수신된 라인: $line")
+            line
+        } catch (e: Exception) {
+            Log.e("Bluetooth", "readLine 오류", e)
+            null
         }
     }
 

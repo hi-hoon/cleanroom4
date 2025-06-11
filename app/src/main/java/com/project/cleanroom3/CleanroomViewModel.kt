@@ -58,61 +58,70 @@ class CleanroomViewModel @Inject constructor() : ViewModel() {
             }
 
             while (true) {
-                val msg = bluetoothService.readLine()
-                if (msg == null) {
-                    delay(100)
-                    continue
-                }
-                Log.d("Bluetooth", "데이터 수신 중: $msg")  // ✅ 로그 추가
+                val raw = bluetoothService.readLine() ?: continue
 
-                if (msg.startsWith("COND_")) {
-                    when (msg) {
-                        "COND_TEMP"  -> condTemp.value = true
-                        "COND_HUMID" -> condHumid.value = true
-                        "COND_DUST"  -> condDust.value = true
-                        "COND_PH"    -> condPH.value = true
+                val messages = raw.split("\n")
+                for (msg in messages) {
+                    val trimmed = msg.trim()
+                    if (trimmed.isEmpty()) continue
+
+                    Log.d("Bluetooth", "수신된 메시지: $trimmed")
+
+                    when {
+                        trimmed.startsWith("TEMP=") -> {
+                            val value = trimmed.removePrefix("TEMP=").trim()
+                            _temperature.value = value
+                        }
+
+                        trimmed.startsWith("HUMID=") -> {
+                            val value = trimmed.removePrefix("HUMID=").trim()
+                            _humidity.value = value
+                        }
+
+                        trimmed.startsWith("DUST=") -> {
+                            val value = trimmed.removePrefix("DUST=").trim()
+                            _dust.value = value
+                        }
+
+                        trimmed.startsWith("PH=") -> {
+                            val value = trimmed.removePrefix("PH=").trim()
+                            _ph.value = value
+                        }
+
+                        trimmed.startsWith("COND_") -> {
+                            when (trimmed) {
+                                "COND_TEMP" -> condTemp.value = true
+                                "COND_HUMID" -> condHumid.value = true
+                                "COND_DUST" -> condDust.value = true
+                                "COND_PH" -> condPH.value = true
+                            }
+                            _sirenOn.value = true  // 조건 발생 시 사이렌 활성화
+                        }
+
+                        trimmed == "FLAME" -> {
+                            _fireOn.value = true
+                            _sirenOn.value = true
+                        }
+
+                        trimmed == "FLAME_OFF" -> {
+                            _fireOn.value = false
+                            _sirenOn.value = false
+                        }
+
+                        trimmed == "SAFE" -> {
+                            condTemp.value = false
+                            condHumid.value = false
+                            condDust.value = false
+                            condPH.value = false
+                            _sirenOn.value = false
+                        }
                     }
                 }
 
-                when {
-                    msg == "FLAME" -> {
-                        _fireOn.value = true
-                        _sirenOn.value = true
-                    }
-                    msg == "FLAME_OFF" -> {
-                        _fireOn.value = false
-                        _sirenOn.value = false
-                    }
-                    msg in listOf("TEMP_HIGH", "HUMID_HIGH", "PH_ALARM", "DUST_ALARM") -> {
-                        _sirenOn.value = true
-                    }
-                    msg == "SAFE" -> {
-                        _sirenOn.value = false
-                    }
-
-                    msg.startsWith("[DATA]TEMP=") -> {
-                        val value = msg.removePrefix("[DATA]TEMP=").trim()
-                        _temperature.value = value
-                    }
-                    msg.startsWith("[DATA]HUMID=") -> {
-                        val value = msg.removePrefix("[DATA]HUMID=").trim()
-                        _humidity.value = value
-                    }
-                    msg.startsWith("[DATA]DUST=") -> {
-                        val value = msg.removePrefix("[DATA]DUST=").trim()
-                        _dust.value = value
-                    }
-                    msg.startsWith("[DATA]PH=") -> {
-                        val value = msg.removePrefix("[DATA]PH=").trim()
-                        _ph.value = value
-                    }
-                }
+                delay(100)  // 너무 빠른 루프 방지
             }
         }
     }
-
-
-
 
     // ✅ Enum 기반 명령 전송 (정적)
     fun sendCommand(command: BluetoothCommand) {
