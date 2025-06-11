@@ -117,8 +117,12 @@ class CleanroomViewModel @Inject constructor() : ViewModel() {
                         }
                     }
                 }
+                val isAlarm =
+                    condTemp.value || condHumid.value || condDust.value || condPH.value || _fireOn.value
 
-                delay(100)  // 너무 빠른 루프 방지
+                _sirenOn.value = isAlarm
+
+                delay(100)
             }
         }
     }
