@@ -127,8 +127,8 @@ fun CleanroomUIScreen(viewModel: CleanroomViewModel) {
     var fanOn by remember { mutableStateOf(false) }
     var doorOpen by remember { mutableStateOf(false) }
 
-    val fireOn by viewModel.fireOn
-    val sirenOn by viewModel.sirenOn
+    val fireOn = viewModel.fireOn.value
+    val sirenOn = viewModel.sirenOn.value
 
     val view = LocalView.current
     val window = (view.context as? Activity)?.window
