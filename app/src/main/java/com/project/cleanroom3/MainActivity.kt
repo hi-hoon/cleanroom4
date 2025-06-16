@@ -127,8 +127,8 @@ fun CleanroomUIScreen(viewModel: CleanroomViewModel) {
     var fanOn by remember { mutableStateOf(false) }
     var doorOpen by remember { mutableStateOf(false) }
 
-    val fireOn = viewModel.fireOn.value
-    val sirenOn = viewModel.sirenOn.value
+    val fireOn by viewModel.fireOn
+    val sirenOn by viewModel.sirenOn
 
     val view = LocalView.current
     val window = (view.context as? Activity)?.window
@@ -249,31 +249,32 @@ fun CleanroomUIScreen(viewModel: CleanroomViewModel) {
 
         Spacer(Modifier.height(8.dp))
 
-        // ⏱ 여러 조건 동시 만족 시 순차 경고 이미지 표시
-        val conditionImages = remember {
-            mutableStateListOf<Int>()
-        }
 
-        LaunchedEffect(
-            viewModel.condTemp.value,
-            viewModel.condHumid.value,
-            viewModel.condDust.value,
-            viewModel.condPH.value
-        ) {
-            conditionImages.clear()
-            if (viewModel.condTemp.value) conditionImages += R.drawable.red_warning
-            if (viewModel.condHumid.value) conditionImages += R.drawable.blue_warning
-            if (viewModel.condDust.value) conditionImages += R.drawable.green_warning
-            if (viewModel.condPH.value) conditionImages += R.drawable.yellow_warning
-        }
+        val condTemp by viewModel.condTemp
+        val condHumid by viewModel.condHumid
+        val condDust by viewModel.condDust
+        val condPH by viewModel.condPH
 
+        val conditionImages by remember {
+            derivedStateOf {
+                buildList {
+                    if (viewModel.condTemp.value) add(R.drawable.red_warning)
+                    if (viewModel.condHumid.value) add(R.drawable.blue_warning)
+                    if (viewModel.condDust.value) add(R.drawable.green_warning)
+                    if (viewModel.condPH.value) add(R.drawable.yellow_warning)
+                }
+            }
+        }
         var currentIndex by remember { mutableStateOf(0) }
+
 
         LaunchedEffect(conditionImages) {
             while (true) {
                 delay(1000)
                 if (conditionImages.isNotEmpty()) {
                     currentIndex = (currentIndex + 1) % conditionImages.size
+                } else {
+                    currentIndex = 0 // 리셋
                 }
             }
         }
