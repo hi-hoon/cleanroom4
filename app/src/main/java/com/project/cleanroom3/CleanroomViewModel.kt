@@ -100,12 +100,12 @@ class CleanroomViewModel @Inject constructor() : ViewModel() {
 
                         trimmed == "FLAME" -> {
                             _fireOn.value = true
-                            _sirenOn.value = true
+                            //_sirenOn.value = true
                         }
 
                         trimmed == "FLAME_OFF" -> {
                             _fireOn.value = false
-                            _sirenOn.value = false
+                            //_sirenOn.value = false
                         }
 
                         trimmed == "SAFE" -> {
